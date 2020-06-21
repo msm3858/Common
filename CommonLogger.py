@@ -35,11 +35,10 @@ class CommonLogger:
                 handler.setLevel(self._logger_level)
 
     @staticmethod
-    def __prepare_handler(file_name, log_level, log_format):
-        file_handler = logging.FileHandler(file_name)
-        file_handler.setLevel(log_level)
-        file_handler.setFormatter(logging.Formatter(log_format))
-        return file_handler
+    def __prepare_handler(handler, log_level, log_format):
+        handler.setLevel(log_level)
+        handler.setFormatter(logging.Formatter(log_format))
+        return handler
 
     def __prepare_logger(self):
         if self._logger is None:
@@ -48,17 +47,25 @@ class CommonLogger:
             return logger
         return self._logger
 
-    def add_handler(self, file_name, log_level=logging.INFO, log_format=None):
+    def add_file_handler(self, file_name, log_level=logging.INFO, log_format=None):
         if log_format is None:
             log_format = self._format
-        self._logger.addHandler(self.__prepare_handler(file_name, log_level, log_format))
+        self._logger.addHandler(
+            self.__prepare_handler(logging.FileHandler(file_name), log_level, log_format))
+
+    def add_stream_handler(self, log_level=logging.INFO, log_format=None):
+        if log_format is None:
+            log_format = self._format
+        self._logger.addHandler(
+            self.__prepare_handler(logging.StreamHandler(), log_level, log_format))
 
     def add_handlers_for_each_level(self, file_name):
-        self.add_handler(f'debug_{file_name}.log', logging.DEBUG)
-        self.add_handler(f'info_{file_name}.log', logging.INFO)
-        self.add_handler(f'warning_{file_name}.log', logging.WARNING)
-        self.add_handler(f'error_{file_name}.log', logging.ERROR)
-        self.add_handler(f'critical_{file_name}.log', logging.CRITICAL)
+        self.add_stream_handler(logging.DEBUG)
+        self.add_file_handler(f'debug_{file_name}.log', logging.DEBUG)
+        self.add_file_handler(f'info_{file_name}.log', logging.INFO)
+        self.add_file_handler(f'warning_{file_name}.log', logging.WARNING)
+        self.add_file_handler(f'error_{file_name}.log', logging.ERROR)
+        self.add_file_handler(f'critical_{file_name}.log', logging.CRITICAL)
 
     # Wrapping methods.
     def debug(self, message):
